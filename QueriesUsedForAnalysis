@@ -1,0 +1,102 @@
+(1)CREATE TABLE IF NOT EXISTS cars_makers_model AS
+     SELECT maker, model, COUNT (model) as COUNT 
+     FROM cars_new
+     WHERE maker IS NOT NULL AND model IS NOT NULL AND
+     maker<>"" AND model<>""
+     GROUP BY maker, model;
+	 
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_makers_model ORDER BY count DESC;
+
+(2) CREATE TABLE IF NOT EXISTS cars_makers AS
+     SELECT maker, COUNT (*) as COUNT 
+     FROM cars_new
+     WHERE maker IS NOT NULL AND
+     maker<>""
+     GROUP BY maker;
+	 
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_makers ORDER BY count DESC;
+
+(3)CREATE TABLE IF NOT EXISTS cars_seat_count AS
+     SELECT seat_count, COUNT (seat_count) as CARS_COUNT 
+     FROM cars_new
+     WHERE seat_count IS NOT NULL AND seat_count <> 0 AND seat_count <10
+     GROUP BY seat_count;
+	 
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_seat_count ORDER BY cars_count DESC;
+
+(4)CREATE TABLE IF NOT EXISTS cars_door_count AS
+     SELECT door_count, COUNT (door_count) as CARS_COUNT 
+     FROM cars_new
+     WHERE door_count IS NOT NULL AND door_count <> 0 AND door_count <6
+     GROUP BY door_count;
+	 
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_door_count ORDER BY cars_count DESC;
+
+(5) CREATE TABLE IF NOT EXISTS cars_sold_period AS
+     SELECT maker, model, DATEDIFF (date_last_seen, date_created) as FOR_SALE_DURATION 
+     FROM cars_new
+     WHERE date_last_seen IS NOT NULL AND date_created IS NOT NULL AND maker IS NOT NULL AND model IS NOT NULL AND
+     maker<>"" AND model<>"";
+    -- GROUP BY maker, model, DATEDIFF (date_last_seen, date_created);
+	
+	CREATE TABLE IF NOT EXISTS cars_sold_period_final AS
+     SELECT maker, model, FOR_SALE_DURATION 
+     FROM cars_sold_period
+     WHERE FOR_SALE_DURATION > -1
+    GROUP BY maker, model, FOR_SALE_DURATION;
+	
+	
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_sold_period_final ORDER BY FOR_SALE_DURATION ASC;
+
+
+(6) CREATE TABLE IF NOT EXISTS cars_manufacture_period AS
+     SELECT manufacture_year, count(manufacture_year)
+     FROM cars_new
+     WHERE manufacture_year IS NOT NULL AND manufacture_year >1886
+    GROUP BY manufacture_year;
+	
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_manufacture_period ORDER BY manufacture_year ASC;
+
+(7) CREATE TABLE IF NOT EXISTS cars_cost_table AS
+     SELECT price_eur, count(price_eur)
+     FROM cars_new
+     WHERE price_eur IS NOT NULL 
+    GROUP BY price_eur;
+	
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_cost_table ORDER BY price_eur ASC;
+
+(8) CREATE TABLE IF NOT EXISTS cars_transmission_table AS
+     SELECT transmission, count(transmission)
+     FROM cars_new
+     WHERE transmission IS NOT NULL AND transmission <> ""
+    GROUP BY transmission;
+	
+INSERT OVERWRITE LOCAL DIRECTORY '/home/qwertykarthik247/BigData'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+SELECT * FROM cars_transmission_table;
+
+
+Analysis questions
+
+1) Which is the top 5 makers in terms of numbers?
+2) Which are the top 5 models in terms of numbers?
+3) Which is most sold cars with seat count? The outliers were removed using the WHERE condition.
+4) Which is most sold cars with door count? The outliers were removed using the WHERE condition.
+5) Which models were sold quickly based on date_created and date_last_seen columns?
+6) How much old cars are being sold as per numbers? Car was invented only in the year 1886, so years before this are considered as outliers and are removed.
+7) Which price range of cars are sold quickly and percentage based on price range?
+8) Which is the most transmission?
